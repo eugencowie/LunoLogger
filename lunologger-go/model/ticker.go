@@ -6,6 +6,8 @@ import "google.golang.org/appengine/urlfetch"
 import "google.golang.org/appengine/datastore"
 import "io/ioutil"
 import "encoding/json"
+import "time"
+import "github.com/shopspring/decimal"
 
 type Ticker struct {
 	Json      string
@@ -15,6 +17,30 @@ type Ticker struct {
 	Bid       string `json:"bid"`
 	Ask       string `json:"ask"`
 	Volume24h string `json:"rolling_24_hour_volume"`
+}
+
+type TickerData struct {
+	Json      string
+	Pair      string
+	Time      time.Time
+	LastTrade decimal.Decimal
+	Bid       decimal.Decimal
+	Ask       decimal.Decimal
+	Volume24h decimal.Decimal
+}
+
+func (t Ticker) Data() TickerData {
+	data := TickerData{}
+	data.Json = t.Json
+	data.Pair = t.Pair
+	data.Time = time.Unix(t.Time / 1000, 0)
+	err := error(nil)
+	data.LastTrade, err = decimal.NewFromString(t.LastTrade)
+	if err != nil { panic(err) }
+	data.Bid, err = decimal.NewFromString(t.Bid)
+	data.Ask, err = decimal.NewFromString(t.Ask)
+	data.Volume24h, err = decimal.NewFromString(t.Volume24h)
+	return data
 }
 
 func webRequest(request *http.Request, url string) []byte {
@@ -52,6 +78,20 @@ func RetrieveTickers(request *http.Request, pair string, order string) []Ticker 
 		if err == datastore.Done { break }
 		if err != nil { panic(err) }
 		results = append(results, ticker)
+	}
+	return results
+}
+
+func RetrieveTickersData(request *http.Request, pair string, order string) []TickerData {
+	context := appengine.NewContext(request)
+	query := datastore.NewQuery("Ticker").Filter("Pair =", pair).Order(order)
+	var results []TickerData
+	for it := query.Run(context); ; {
+		var ticker Ticker
+		_, err := it.Next(&ticker)
+		if err == datastore.Done { break }
+		if err != nil { panic(err) }
+		results = append(results, ticker.Data())
 	}
 	return results
 }
