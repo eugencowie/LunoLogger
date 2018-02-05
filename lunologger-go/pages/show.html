@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="x-ua-compatible" content="ie=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Luno Logger</title>
+		<link rel="stylesheet" href="/public/bootstrap.min.css">
+		<style>
+			table {
+				border: 2px solid black;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="row">
+			{{if .XbtZarTickers }}
+				<div class="col-lg-{{divide 12 .Columns}}">
+					<table class="table">
+						<tr>
+							<th>Pair</th>
+							<th>Time</th>
+							<th>Last trade</th>
+							<th>Bid</th>
+							<th>Ask</th>
+							<th>24h volume</th>
+						</tr>
+						{{range .XbtZarTickers}}
+							<tr>
+								<td>{{.Pair}}</td>
+								<td>{{.Time}}</td>
+								<td>{{.LastTrade}}</td>
+								<td>{{.Bid}}</td>
+								<td>{{.Ask}}</td>
+								<td>{{.Volume24h}}</td>
+							</tr>
+						{{end}}
+					</table>
+				</div>
+			{{end}}
+			{{if .EthXbtTickers }}
+				<div class="col-lg-{{divide 12 .Columns}}">
+					<table class="table">
+						<tr>
+							<th>Pair</th>
+							<th>Time</th>
+							<th>Last trade</th>
+							<th>Bid</th>
+							<th>Ask</th>
+							<th>24h volume</th>
+						</tr>
+						{{range .EthXbtTickers}}
+							<tr>
+								<td>{{.Pair}}</td>
+								<td>{{.Time}}</td>
+								<td>{{.LastTrade}}</td>
+								<td>{{.Bid}}</td>
+								<td>{{.Ask}}</td>
+								<td>{{.Volume24h}}</td>
+							</tr>
+						{{end}}
+					</table>
+				</div>
+			{{end}}
+		</div>
+	</body>
+</html>
