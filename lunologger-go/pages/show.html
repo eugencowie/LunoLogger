@@ -6,17 +6,12 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>Luno Logger</title>
 		<link rel="stylesheet" href="/public/bootstrap.min.css">
-		<style>
-			table {
-				border: 2px solid black;
-			}
-		</style>
 	</head>
 	<body>
 		<div class="row">
 			{{if .XbtZarTickers }}
 				<div class="col-lg-{{divide 12 .Columns}}">
-					<table class="table">
+					<table class="table table-hover">
 						<tr>
 							<th>Pair</th>
 							<th>Time</th>
@@ -40,7 +35,7 @@
 			{{end}}
 			{{if .EthXbtTickers }}
 				<div class="col-lg-{{divide 12 .Columns}}">
-					<table class="table">
+					<table class="table table-hover">
 						<tr>
 							<th>Pair</th>
 							<th>Time</th>
