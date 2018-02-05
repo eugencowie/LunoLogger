@@ -21,13 +21,10 @@ func webRequest(request *http.Request, url string) []byte {
 	context := appengine.NewContext(request)
 	client := urlfetch.Client(context)
 	response, err := client.Get(url)
-	if err != nil {
-		panic(err)
-	}
+	if err != nil { panic(err) }
+	defer response.Body.Close()
 	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		panic(err)
-	}
+	if err != nil { panic(err) }
 	return body
 }
 
@@ -42,9 +39,7 @@ func StoreTicker(request *http.Request, ticker Ticker) {
 	context := appengine.NewContext(request)
 	key := datastore.NewIncompleteKey(context, "Ticker", nil)
 	_, err := datastore.Put(context, key, &ticker)
-	if err != nil {
-		panic(err)
-	}
+	if err != nil { panic(err) }
 }
 
 func RetrieveTickers(request *http.Request, pair string, order string) []Ticker {
@@ -54,12 +49,8 @@ func RetrieveTickers(request *http.Request, pair string, order string) []Ticker 
 	for it := query.Run(context); ; {
 		var ticker Ticker
 		_, err := it.Next(&ticker)
-		if err == datastore.Done {
-			break
-		}
-		if err != nil {
-			panic(err)
-		}
+		if err == datastore.Done { break }
+		if err != nil { panic(err) }
 		results = append(results, ticker)
 	}
 	return results
