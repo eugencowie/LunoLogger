@@ -2,9 +2,19 @@
   "name": "luno-logger",
   "version": "0.1.0",
   "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "babel src -d dist --presets=env",
+    "deploy": "gcloud beta functions deploy fetch"
+  },
   "dependencies": {
     "@google-cloud/datastore": "^1.3.3",
     "request": "^2.83.0",
     "request-promise": "^4.2.2"
+  },
+  "devDependencies": {
+    "@google-cloud/cloud-sdk": "0.0.3",
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1"
   }
 }
