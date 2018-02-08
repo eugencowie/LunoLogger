@@ -1,7 +1,7 @@
 from google.appengine.ext import ndb
 from datetime import datetime
 import urllib2
-import json
+import json as json_loader
 
 class Ticker(ndb.Model):
     json = ndb.StringProperty()
@@ -12,12 +12,23 @@ class Ticker(ndb.Model):
     ask = ndb.StringProperty()
     rolling_24_hour_volume = ndb.StringProperty()
 
-def ticker(pair):
-    json_str = urllib2.urlopen('https://api.mybitx.com/api/1/ticker?pair={}'.format(pair)).read()
-    json_dict = json.loads(json_str)
-    tickers = ndb.Key('tickers', '{}'.format(pair))
-    ticker = Ticker(parent=tickers, json=json_str, pair=json_dict['pair'],
-        timestamp=datetime.fromtimestamp(json_dict['timestamp']/1000),
-        last_trade=json_dict['last_trade'], bid=json_dict['bid'], ask=json_dict['ask'],
-        rolling_24_hour_volume=json_dict['rolling_24_hour_volume'])
+def fetch_ticker(pair):
+    text = urllib2.urlopen('https://api.mybitx.com/api/1/ticker?pair={}'.format(pair)).read()
+    json = json_loader.loads(text)
+    ticker = Ticker(
+        json = text,
+        pair = json['pair'],
+        timestamp = datetime.fromtimestamp(json['timestamp'] / 1000),
+        last_trade = (json['last_trade']),
+        bid = (json['bid']),
+        ask = (json['ask']),
+        rolling_24_hour_volume = (json['rolling_24_hour_volume'])
+    )
+    ticker.put()
     return ticker
+
+def retrieve_tickers(pair, max=2000):
+    return Ticker.query().filter(Ticker.pair == pair).order(Ticker.timestamp).fetch(max)
+
+def retrieve_tickers_asc(pair, max=50):
+    return Ticker.query().filter(Ticker.pair == pair).order(-Ticker.timestamp).fetch(max)
