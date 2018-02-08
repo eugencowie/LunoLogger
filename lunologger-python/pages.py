@@ -14,8 +14,8 @@ class FetchPage(RequestHandler):
         
 class DumpPage(RequestHandler):
     def get(self):
-        xbt_zar = Ticker.query(ancestor=ndb.Key('tickers', 'XBTZAR')).order(-Ticker.timestamp).fetch(100)
-        eth_xbt = Ticker.query(ancestor=ndb.Key('tickers', 'ETHXBT')).order(-Ticker.timestamp).fetch(100)
+        xbt_zar = Ticker.query(ancestor=ndb.Key('tickers', 'XBTZAR')).order(-Ticker.timestamp).fetch(2000)
+        eth_xbt = Ticker.query(ancestor=ndb.Key('tickers', 'ETHXBT')).order(-Ticker.timestamp).fetch(2000)
         self.response.write(''.join([t.json for t in xbt_zar+eth_xbt]))
 
 def ticker_html_inner(t):
@@ -34,8 +34,8 @@ def ticker_html_prev(t, prev):
 
 class MainPage(RequestHandler):
     def get(self):
-        xbtzar = Ticker.query(ancestor=ndb.Key('tickers', 'XBTZAR')).order(-Ticker.timestamp).fetch(20)
-        ethxbt = Ticker.query(ancestor=ndb.Key('tickers', 'ETHXBT')).order(-Ticker.timestamp).fetch(20)
+        xbtzar = Ticker.query(ancestor=ndb.Key('tickers', 'XBTZAR')).order(-Ticker.timestamp).fetch(200)
+        ethxbt = Ticker.query(ancestor=ndb.Key('tickers', 'ETHXBT')).order(-Ticker.timestamp).fetch(200)
         table_head = tr(th('Pair') + th('Time') + th('Last trade') + th('Bid') + th('Ask'))# + th('24h volume'))
         xbtzar_rows = [ticker_html_prev(t,xbtzar[i+1]) if i<len(xbtzar)-1 else ticker_html(t) for i,t in enumerate(xbtzar)]
         ethxbt_rows = [ticker_html_prev(t,ethxbt[i+1]) if i<len(ethxbt)-1 else ticker_html(t) for i,t in enumerate(ethxbt)]
@@ -75,26 +75,33 @@ class Wallet:
     def none(self, t):
         return tr(ticker_html_inner(t) + td('') + td('{0:.2f}'.format(self.currency)) + td('{0:.8f}'.format(self.asset)), 'style="color:white;background-color:dimgray"')
 
-class BacktestPage(RequestHandler):
-    def get(self):
-        xbtzar = Ticker.query(ancestor=ndb.Key('tickers', 'XBTZAR')).order(Ticker.timestamp).fetch(20)
-        wallet = Wallet()
-        xbtzar_rows = []
-        for i,t in enumerate(xbtzar):
-            if i>0:
-                prev = xbtzar[i-1]
-                action = 'None'
-                if float(t.last_trade) > float(prev.last_trade):
-                    xbtzar_rows.append(wallet.buy(t, Decimal(t.last_trade), Decimal(0)))
-                elif float(t.last_trade) < float(prev.last_trade):
-                    xbtzar_rows.append(wallet.sell(t, Decimal(t.last_trade), Decimal(0)))
-                else:
-                    xbtzar_rows.append(wallet.none(t))
-        wallet.sell(t, Decimal(xbtzar[len(xbtzar)-1].last_trade), Decimal(0))
-        table_head = tr(th('Pair') + th('Time') + th('Last trade') + th('Bid') + th('Ask') + th('Action') + th('Currency') + th('Asset'))
-        self.response.write(
-            html(
-                head(link('stylesheet', '/public/bootstrap.min.css')) +
-                body(table(table_head + '\n'.join(xbtzar_rows), 'class="table table-hover"'))
-            )
+def backtest(response, pair):
+    tickers = Ticker.query(ancestor=ndb.Key('tickers', pair)).order(Ticker.timestamp).fetch(2000)
+    wallet = Wallet()
+    ticker_rows = []
+    for i,t in enumerate(tickers):
+        if i>0:
+            prev = tickers[i-1]
+            action = 'None'
+            if float(t.last_trade) > float(prev.last_trade):
+                ticker_rows.append(wallet.buy(t, Decimal(t.last_trade), Decimal(0)))
+            elif float(t.last_trade) < float(prev.last_trade):
+                ticker_rows.append(wallet.sell(t, Decimal(t.last_trade), Decimal(0)))
+            else:
+                ticker_rows.append(wallet.none(t))
+    wallet.sell(t, Decimal(tickers[len(tickers)-1].last_trade), Decimal(0))
+    table_head = tr(th('Pair') + th('Time') + th('Last trade') + th('Bid') + th('Ask') + th('Action') + th('Currency') + th('Asset'))
+    response.write(
+        html(
+            head(link('stylesheet', '/public/bootstrap.min.css')) +
+            body(table(table_head + '\n'.join(ticker_rows), 'class="table table-hover"'))
         )
+    )
+
+class BacktestXbtZarPage(RequestHandler):
+    def get(self):
+        backtest(self.response, 'XBTZAR')
+
+class BacktestEthXbtPage(RequestHandler):
+    def get(self):
+        backtest(self.response, 'ETHXBT')
