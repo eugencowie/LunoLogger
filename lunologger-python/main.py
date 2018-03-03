@@ -25,7 +25,7 @@ def show(period='hourly', pairs='xbtzar+ethxbt'):
     pairs_list = pairs.split('+')
     tickers = []
     if period == 'hourly': tickers = [model.retrieve_tickers_asc(pair.upper(), 50) for pair in pairs_list]
-    if period == 'daily': tickers = [[t for t in model.retrieve_tickers_asc(pair.upper(), 50) if t.timestamp.hour == 0] for pair in pairs_list]
+    if period == 'daily': tickers = [[t for t in model.retrieve_tickers_asc(pair.upper(), 50*24) if t.timestamp.hour == 0] for pair in pairs_list]
     return flask.render_template('show.html', columns=len(pairs_list), pairs=tickers)
 
 @app.route('/test/')
